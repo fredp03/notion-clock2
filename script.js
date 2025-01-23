@@ -9,24 +9,25 @@ var Clock = (function(){
         this._slots = this._element.getElementsByTagName('span');
         this._tick();
         
-        // Add click handlers
+        // Fixed scaling implementation
         this._scale = 1.0;
+        
         this._element.addEventListener('dblclick', (e) => {
             e.preventDefault();
-            this._scale += 0.1;
-            this._element.style.transform = `scale(${this._scale})`;
+            e.stopPropagation();
+            this._scale = Math.min(3, this._scale + 0.1); // Add upper limit
+            this._updateScale();
         });
         
         this._element.addEventListener('click', (e) => {
             e.preventDefault();
-            if (e.detail === 1) { // Single click
-                setTimeout(() => {
-                    if (e.detail === 1) {
-                        this._scale = Math.max(0.1, this._scale - 0.1);
-                        this._element.style.transform = `scale(${this._scale})`;
-                    }
-                }, 200);
-            }
+            e.stopPropagation();
+            setTimeout(() => {
+                if (e.detail === 1) { // Make sure it's a single click
+                    this._scale = Math.max(0.3, this._scale - 0.1); // Add lower limit
+                    this._updateScale();
+                }
+            }, 200);
         });
     };
 
@@ -78,6 +79,12 @@ var Clock = (function(){
             // start flippin
             slot.classList.add('flip');
 
+        },
+
+        _updateScale: function() {
+            requestAnimationFrame(() => {
+                this._element.style.transform = `scale(${this._scale})`;
+            });
         }
 
     };
