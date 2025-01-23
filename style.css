@@ -27,6 +27,8 @@ h2 {
     line-height: 1.375;
     padding: 0; /* Added to ensure no padding on clock */
     margin: 0; /* Added to ensure no margin on clock */
+    transition: transform 0.3s ease; /* Add smooth transition for scaling */
+    cursor: pointer; /* Add pointer cursor */
 }
 
 .clock:before,
@@ -44,9 +46,10 @@ h2 {
     left: 2.325em;
 }
 
-.clock:after {
+/* Remove the second colon by commenting out or removing .clock:after */
+/* .clock:after {
     right: 2.325em;
-}
+} */
 
 .clock span {
     position: relative;

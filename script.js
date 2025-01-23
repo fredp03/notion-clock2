@@ -1,74 +1,91 @@
-
 var Clock = (function(){
+    var exports = function(element) {
+        this._element = element;
+        var html = '';
+        for (var i=0; i<4; i++) { // Changed from 6 to 4 digits
+            html += '<span>&nbsp;</span>';
+        }
+        this._element.innerHTML = html;
+        this._slots = this._element.getElementsByTagName('span');
+        this._tick();
+        
+        // Add click handlers
+        this._scale = 1.0;
+        this._element.addEventListener('dblclick', (e) => {
+            e.preventDefault();
+            this._scale += 0.1;
+            this._element.style.transform = `scale(${this._scale})`;
+        });
+        
+        this._element.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (e.detail === 1) { // Single click
+                setTimeout(() => {
+                    if (e.detail === 1) {
+                        this._scale = Math.max(0.1, this._scale - 0.1);
+                        this._element.style.transform = `scale(${this._scale})`;
+                    }
+                }, 200);
+            }
+        });
+    };
 
-	var exports = function(element) {
-		this._element = element;
-		var html = '';
-		for (var i=0;i<6;i++) {
-			html += '<span>&nbsp;</span>';
-		}
-		this._element.innerHTML = html;
-		this._slots = this._element.getElementsByTagName('span');
-		this._tick();
-	};
+    exports.prototype = {
+        _tick:function() {
+            var time = new Date();
+            this._update(this._pad(time.getHours()) + this._pad(time.getMinutes())); // Removed seconds
+            var self = this;
+            setTimeout(function(){
+                self._tick();
+            },1000);
+        },
 
-	exports.prototype = {
+        _pad:function(value) {
+            return ('0' + value).slice(-2);
+        },
 
-		_tick:function() {
-			var time = new Date();
-			this._update(this._pad(time.getHours()) + this._pad(time.getMinutes()) + this._pad(time.getSeconds()));
-			var self = this;
-			setTimeout(function(){
-				self._tick();
-			},1000);
-		},
+        _update:function(timeString) {
 
-		_pad:function(value) {
-			return ('0' + value).slice(-2);
-		},
+            var i=0,l=this._slots.length,value,slot,now;
+            for (;i<l;i++) {
 
-		_update:function(timeString) {
+                value = timeString.charAt(i);
+                slot = this._slots[i];
+                now = slot.dataset.now;
 
-			var i=0,l=this._slots.length,value,slot,now;
-			for (;i<l;i++) {
+                if (!now) {
+                    slot.dataset.now = value;
+                    slot.dataset.old = value;
+                    continue;
+                }
 
-				value = timeString.charAt(i);
-				slot = this._slots[i];
-				now = slot.dataset.now;
+                if (now !== value) {
+                    this._flip(slot,value);
+                }
+            }
+        },
 
-				if (!now) {
-					slot.dataset.now = value;
-					slot.dataset.old = value;
-					continue;
-				}
+        _flip:function(slot,value) {
 
-				if (now !== value) {
-					this._flip(slot,value);
-				}
-			}
-		},
+            // setup new state
+            slot.classList.remove('flip');
+            slot.dataset.old = slot.dataset.now;
+            slot.dataset.now = value;
 
-		_flip:function(slot,value) {
+            // force dom reflow
+            slot.offsetLeft;
 
-			// setup new state
-			slot.classList.remove('flip');
-			slot.dataset.old = slot.dataset.now;
-			slot.dataset.now = value;
+            // start flippin
+            slot.classList.add('flip');
 
-			// force dom reflow
-			slot.offsetLeft;
+        }
 
-			// start flippin
-			slot.classList.add('flip');
+    };
 
-		}
-
-	};
-
-	return exports;
+    return exports;
 }());
 
 var i=0,clocks = document.querySelectorAll('.clock'),l=clocks.length;
 for (;i<l;i++) {
-	new Clock(clocks[i]);
+    new Clock(clocks[i]);
 }
